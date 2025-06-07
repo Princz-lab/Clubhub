@@ -1,0 +1,39 @@
+import React, { useState, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import MainNavigator from "./navigation/MainNavigator";
+import LoginScreen from "./screens/LoginScreen";
+import messaging from '@react-native-firebase/messaging';
+
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Request FCM permission
+    messaging().requestPermission();
+    messaging()
+      .getToken()
+      .then((token) => {
+        if (token) {
+          // Send token to backend
+          fetch("http://localhost:5000/api/users/me/token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ fcmToken: token }),
+          });
+        }
+      });
+  }, []);
+
+  return (
+    <NavigationContainer>
+      {isAuthenticated ? (
+        <MainNavigator />
+      ) : (
+        <LoginScreen onLogin={() => setIsAuthenticated(true)} />
+      )}
+    </NavigationContainer>
+  );
+}

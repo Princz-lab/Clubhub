@@ -1,0 +1,60 @@
+const Club = require("../models/Club");
+const User = require("../models/User");
+
+exports.createClub = async (req, res) => {
+  const { name, description } = req.body;
+  const creatorId = req.user.userId;
+
+  try {
+    const club = new Club({
+      name,
+      description,
+      creator: creatorId,
+      members: [creatorId],
+    });
+
+    await club.save();
+
+    await User.findByIdAndUpdate(creatorId, {
+      $push: { joinedClubs: club._id },
+    });
+
+    res.json(club);
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.getClubs = async (req, res) => {
+  try {
+    const clubs = await Club.find().populate("creator", "name");
+    res.json(clubs);
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.joinClub = async (req, res) => {
+  const { clubId } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const club = await Club.findById(clubId);
+    if (!club) return res.status(404).json({ msg: "Club not found" });
+
+    if (club.members.includes(userId)) {
+      return res.status(400).json({ msg: "Already in club" });
+    }
+
+    club.members.push(userId);
+    await club.save();
+
+    await User.findByIdAndUpdate(userId, {
+      $push: { joinedClubs: clubId },
+    });
+
+    res.json({ msg: "Joined club successfully" });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};

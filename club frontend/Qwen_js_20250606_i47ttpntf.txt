@@ -1,0 +1,25 @@
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+
+export default function ClubCard({ club, onPress }) {
+  return (
+    <TouchableOpacity onPress={onPress} style={styles.card}>
+      <Text style={styles.title}>{club.name}</Text>
+      <Text>{club.description}</Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#fff",
+    padding: 15,
+    marginVertical: 8,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: { fontWeight: "bold", fontSize: 16 },
+});
